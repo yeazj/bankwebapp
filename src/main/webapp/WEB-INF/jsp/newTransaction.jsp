@@ -12,6 +12,7 @@
 		<%@include file="errorMessage.jsp"%>
 		<div id="createTransaction">
 			<form id="newTransactionForm" action="newTransaction" method="post">
+			<div id="messageBox" class="hidden"></div>
 				<div id="input-group-transcode" class="form-group">
 					<label for="transcode" class="control-label">Transaction code</label>
 					<input type="text" class="form-control" id="transcode" name="transcode" placeholder="Transaction Code">
@@ -29,5 +30,6 @@
 		</div>
 	</div>
 	</main>
+    <script type="text/javascript" src="<c:url value="/resources/js/transaction.js" />"></script>
   </body>
 </html>

@@ -23,4 +23,8 @@ public interface TransactionCodesDAO {
 
 	void create(List<String> codes, int userId) throws ServiceException;
 
+    boolean check(String code, int user_id) throws ServiceException;
+    
+    //List<String> get(int userId) throws ServiceException;
+	
 }

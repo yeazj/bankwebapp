@@ -19,6 +19,8 @@ import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.NEW_TRANSACTION;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.lang.NumberFormatException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -27,15 +29,24 @@ import javax.servlet.http.HttpServletResponse;
 
 import sg.edu.sutd.bank.webapp.commons.ServiceException;
 import sg.edu.sutd.bank.webapp.model.ClientTransaction;
+import sg.edu.sutd.bank.webapp.model.TransactionStatus;
 import sg.edu.sutd.bank.webapp.model.User;
+import sg.edu.sutd.bank.webapp.model.ClientAccount;
 import sg.edu.sutd.bank.webapp.service.ClientTransactionDAO;
 import sg.edu.sutd.bank.webapp.service.ClientTransactionDAOImpl;
+import sg.edu.sutd.bank.webapp.service.TransactionCodesDAO;
+import sg.edu.sutd.bank.webapp.service.TransactionCodesDAOImp;
+import sg.edu.sutd.bank.webapp.service.ClientAccountDAO;
+import sg.edu.sutd.bank.webapp.service.ClientAccountDAOImpl;
 
 @WebServlet(NEW_TRANSACTION)
 public class NewTransactionServlet extends DefaultServlet {
 	private static final long serialVersionUID = 1L;
 	private ClientTransactionDAO clientTransactionDAO = new ClientTransactionDAOImpl();
-	
+	private final ClientAccountDAO clientAccountDAO = new ClientAccountDAOImpl();
+    private final TransactionCodesDAO transactionCodesDAO = new TransactionCodesDAOImp();
+    public static final BigDecimal TRANSFER_LIMIT = new BigDecimal(10);
+    
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
@@ -44,12 +55,30 @@ public class NewTransactionServlet extends DefaultServlet {
 			clientTransaction.setUser(user);
 			clientTransaction.setAmount(new BigDecimal(req.getParameter("amount")));
 			clientTransaction.setTransCode(req.getParameter("transcode"));
-			clientTransaction.setToAccountNum(req.getParameter("toAccountNum"));
+			clientTransaction.setToAccountNum(Integer.parseInt(req.getParameter("toAccountNum")));
+			
+			ClientAccount clientAccount = clientAccountDAO.load(user);
+
+            if(clientAccount.getAmount().compareTo(clientTransaction.getAmount()) < 0) {
+                throw new SQLException("Your balance is not enough!");
+            } else if (!transactionCodesDAO.check(clientTransaction.getTransCode(), clientTransaction.getUser().getId())) {
+                throw new SQLException("Your transaction code is invalid!");
+            } else {
+                if(clientTransaction.getAmount().compareTo(TRANSFER_LIMIT) < 0) {
+                    clientTransaction.setStatus(TransactionStatus.APPROVED);
+                    clientTransactionDAO.updateAccount(clientTransaction);
+                } else {
+                    clientTransaction.setStatus(TransactionStatus.PENDING);
+                }
+                clientAccount.setAmount(clientAccount.getAmount().subtract(clientTransaction.getAmount()));
+            }
+			
+			clientAccountDAO.update(clientAccount);
 			clientTransactionDAO.create(clientTransaction);
 			redirect(resp, ServletPaths.CLIENT_DASHBOARD_PAGE);
-		} catch (ServiceException e) {
-			sendError(req, e.getMessage());
-			forward(req, resp);
-		}
+		} catch (ServiceException | SQLException e) {
+            sendError(req, e.getMessage());
+            forward(req, resp);
+        }
 	}
 }

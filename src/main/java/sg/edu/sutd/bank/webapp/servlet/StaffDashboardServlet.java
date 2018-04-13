@@ -17,6 +17,7 @@ package sg.edu.sutd.bank.webapp.servlet;
 import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.STAFF_DASHBOARD_PAGE;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -145,30 +146,41 @@ public class StaffDashboardServlet extends DefaultServlet {
 	private void onTransactionDecisionAction(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		String[] decisions = req.getParameterValues("decision");
-		int[] transIds = toIntegerArray(req.getParameterValues("trans_id"));
-		List<ClientTransaction> transactions = new ArrayList<ClientTransaction>();
-		for (int i = 0; i < transIds.length; i++) {
-			int transId = transIds[i];
-			Decision decision = Decision.valueOf(decisions[i]);
-			if (decision.getStatus() != null) {
-				ClientTransaction trans = new ClientTransaction();
-				trans.setId(transId);
-				trans.setStatus(decision.getTransStatus());
-				transactions.add(trans );
-			}
-		}
-		if (!transactions.isEmpty()) {
-			try {
-				clientTransactionDAO.updateDecision(transactions);
-			} catch (ServiceException e) {
-				sendError(req, e.getMessage());
-			}
-		}
-		redirect(resp, STAFF_DASHBOARD_PAGE);
+        int[] transIds = toIntegerArray(req.getParameterValues("trans_id"));
+        List<ClientTransaction> transactions = new ArrayList<>();
+
+        try {
+           
+            for (int i = 0; i < transIds.length; i++) {
+                int transId = transIds[i];
+                Decision decision = Decision.valueOf(decisions[i]);
+                if (decision.getStatus() != null) {
+                    ClientTransaction clientTransaction = clientTransactionDAO.select(transId);
+                    ClientAccount account = clientAccountDAO.load(clientTransaction.getUser());
+                    
+                    clientTransaction.setStatus(decision.getTransStatus());
+                    
+                    if (decision.equals(Decision.decline)) {
+                        account.setAmount(account.getAmount().add(clientTransaction.getAmount()));
+                        clientAccountDAO.update(account);
+                    } else {
+                    	clientTransactionDAO.updateAccount(clientTransaction);
+                    }
+                    
+                    clientTransactionDAO.updateDecision(clientTransaction);
+
+ 
+                }
+            }
+        } catch (ServiceException e) {
+            sendError(req, e.getMessage());
+        }
+        redirect(resp, STAFF_DASHBOARD_PAGE);
 	}
+
 	
 	private static enum Decision {
-		waiting(null, null), 
+		waiting(UserStatus.PENDING, TransactionStatus.PENDING), 
 		approve(UserStatus.APPROVED, TransactionStatus.APPROVED), 
 		decline(UserStatus.DECLINED, TransactionStatus.DECLINED);
 		

@@ -34,19 +34,38 @@ public class ClientTransactionDAOImpl extends AbstractDAOImpl implements ClientT
 		Connection conn = connectDB();
 		PreparedStatement ps;
 		try {
-			ps = prepareStmt(conn, "INSERT INTO client_transaction(trans_code, amount, to_account_num, user_id)"
-					+ " VALUES(?,?,?,?)");
+			ps = prepareStmt(conn, "INSERT INTO client_transaction(trans_code, amount, to_account_num, user_id, status)"
+					+ " VALUES(?,?,?,?,?)");
 			int idx = 1;
 			ps.setString(idx++, clientTransaction.getTransCode());
 			ps.setBigDecimal(idx++, clientTransaction.getAmount());
-			ps.setString(idx++, clientTransaction.getToAccountNum());
+			ps.setInt(idx++, clientTransaction.getToAccountNum());
 			ps.setInt(idx++, clientTransaction.getUser().getId());
+			ps.setString(idx++, clientTransaction.getStatus().name());
 			executeInsert(clientTransaction, ps);
 		} catch (SQLException e) {
 			throw ServiceException.wrap(e);
 		}
 	}
 
+    @Override
+    public void updateAccount(ClientTransaction clientTransaction) throws ServiceException {
+    	Connection conn = connectDB();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = prepareStmt(conn, "UPDATE client_account SET amount = amount + ? WHERE user_id = ?");
+            int idx = 1;
+            ps.setBigDecimal(idx++, clientTransaction.getAmount());
+            ps.setInt(idx++, clientTransaction.getToAccountNum());
+            executeUpdate(ps);
+        } catch (SQLException e) {
+            throw ServiceException.wrap(e);
+        } finally {
+			closeDb(conn, ps, rs);
+		}
+    }
+	
 	@Override
 	public List<ClientTransaction> load(User user) throws ServiceException {
 		Connection conn = connectDB();
@@ -67,7 +86,7 @@ public class ClientTransactionDAOImpl extends AbstractDAOImpl implements ClientT
 				trans.setDateTime(rs.getDate("datetime"));
 				trans.setStatus(TransactionStatus.of(rs.getString("status")));
 				trans.setTransCode(rs.getString("trans_code"));
-				trans.setToAccountNum(rs.getString("to_account_num"));
+				trans.setToAccountNum(rs.getInt("to_account_num"));
 				transactions.add(trans);
 			}
 			return transactions;
@@ -85,7 +104,7 @@ public class ClientTransactionDAOImpl extends AbstractDAOImpl implements ClientT
 		ResultSet rs = null;
 		try {
 			ps = conn.prepareStatement(
-					"SELECT * FROM client_transaction WHERE status is null");
+					"SELECT * FROM client_transaction WHERE status = 'PENDING'");
 			rs = ps.executeQuery();
 			List<ClientTransaction> transactions = new ArrayList<ClientTransaction>();
 			while (rs.next()) {
@@ -96,7 +115,7 @@ public class ClientTransactionDAOImpl extends AbstractDAOImpl implements ClientT
 				trans.setAmount(rs.getBigDecimal("amount"));
 				trans.setDateTime(rs.getDate("datetime"));
 				trans.setTransCode(rs.getString("trans_code"));
-				trans.setToAccountNum(rs.getString("to_account_num"));
+				trans.setToAccountNum(rs.getInt("to_account_num"));
 				transactions.add(trans);
 			}
 			return transactions;
@@ -106,7 +125,7 @@ public class ClientTransactionDAOImpl extends AbstractDAOImpl implements ClientT
 			closeDb(conn, ps, rs);
 		}
 	}
-
+/*
 	@Override
 	public void updateDecision(List<ClientTransaction> transactions) throws ServiceException {
 		StringBuilder query = new StringBuilder("UPDATE client_transaction SET status = Case id ");
@@ -138,5 +157,60 @@ public class ClientTransactionDAOImpl extends AbstractDAOImpl implements ClientT
 			closeDb(conn, ps, rs);
 		}
 	}
+	*/
+	
+    @Override
+    public void updateDecision(ClientTransaction transaction) throws ServiceException {
+    	Connection conn = connectDB();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = conn.prepareCall("UPDATE client_transaction SET status = ? WHERE id = ?");
+            int idx = 1;
+            ps.setString(idx++, transaction.getStatus().name());
+            ps.setInt(idx++, transaction.getId());
+            int rowNum = ps.executeUpdate();
+            if (rowNum == 0) {
+                throw new SQLException("Update failed, no rows affected!");
+            }
+        } catch (SQLException e) {
+            throw ServiceException.wrap(e);
+        } finally {
+			closeDb(conn, ps, rs);
+		}
+    }
+	
+    @Override
+    public ClientTransaction select(int transId) throws ServiceException {
+		Connection conn = connectDB();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = conn.prepareStatement("SELECT * FROM client_transaction WHERE id = ?");
+            int idx = 1;
+            ps.setInt(idx++, transId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+            	ClientTransaction trans = new ClientTransaction();
+                trans.setId(transId);
+                User user = new User(rs.getInt("user_id"));
+                trans.setUser(user);
+                trans.setAmount(rs.getBigDecimal("amount"));
+                trans.setDateTime(rs.getDate("datetime"));
+                trans.setStatus(TransactionStatus.of(rs.getString("status")));
+                trans.setTransCode(rs.getString("trans_code"));
+                trans.setToAccountNum(rs.getInt("to_account_num"));
+                return trans;
+            } else {
+                throw new SQLException("Transaction doesn't exist!");
+            }
+        } catch (SQLException e) {
+            throw ServiceException.wrap(e);
+        } finally {
+            closeDb(conn, ps, rs);
+        }
+                
+    }
+
 
 }

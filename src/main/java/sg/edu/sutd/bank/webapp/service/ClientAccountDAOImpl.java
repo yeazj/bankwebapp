@@ -22,6 +22,7 @@ import java.sql.SQLException;
 
 import sg.edu.sutd.bank.webapp.commons.ServiceException;
 import sg.edu.sutd.bank.webapp.model.ClientAccount;
+import sg.edu.sutd.bank.webapp.model.User;
 
 public class ClientAccountDAOImpl extends AbstractDAOImpl implements ClientAccountDAO {
 
@@ -62,4 +63,32 @@ public class ClientAccountDAOImpl extends AbstractDAOImpl implements ClientAccou
 		}
 	}
 
+    @Override
+    public ClientAccount load(User user) throws ServiceException {
+        Connection conn = connectDB();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        ClientAccount clientAccount = null;
+        try {
+            ps = conn.prepareStatement("SELECT id, amount FROM client_account acc WHERE acc.user_id = ?");
+            int idx = 1;
+            ps.setInt(idx++, user.getId());
+            rs = ps.executeQuery();
+            if (rs.next()) {
+            	clientAccount = new ClientAccount();
+            	clientAccount.setUser(user);
+            	clientAccount.setId(rs.getInt("id"));
+            	clientAccount.setAmount(rs.getBigDecimal("amount"));
+            } else {
+                throw new SQLException("No found account for user " + user.getUserName());
+            }
+                
+            return clientAccount;
+        } catch (SQLException e) {
+            throw ServiceException.wrap(e);
+        } finally {
+			closeDb(conn, ps, rs);
+		}
+    }
+	
 }

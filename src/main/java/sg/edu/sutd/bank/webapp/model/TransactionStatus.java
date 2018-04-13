@@ -17,7 +17,8 @@ package sg.edu.sutd.bank.webapp.model;
 
 public enum TransactionStatus {
 	APPROVED,
-	DECLINED;
+	DECLINED,
+	PENDING;
 
 	public static TransactionStatus of(String status) {
 		if (status == null) {

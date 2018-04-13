@@ -25,10 +25,14 @@ import sg.edu.sutd.bank.webapp.model.User;
 public interface ClientTransactionDAO {
 
 	void create(ClientTransaction clientTransaction) throws ServiceException;
+	
+	void updateAccount(ClientTransaction clientTransaction) throws ServiceException; //added by me
 
 	List<ClientTransaction> load(User user) throws ServiceException;
 	
 	List<ClientTransaction> loadWaitingList() throws ServiceException;
 
-	void updateDecision(List<ClientTransaction> transactions) throws ServiceException;
+	void updateDecision(ClientTransaction transaction) throws ServiceException;
+	
+    ClientTransaction select(int transId) throws ServiceException;
 }

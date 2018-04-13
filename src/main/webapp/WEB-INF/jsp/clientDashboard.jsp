@@ -45,6 +45,11 @@
 				<button id="createTransBtn" type="submit" class="btn btn-default">New Transaction</button>
 			</form>
 		</div>
+		<div id="uploadTransaction" style="padding-top: 50px">
+        	<form id="uploadForm" action="upload" method="get">
+        		<button id="uploadTransBtn" type="submit" class="btn btn-default">Upload File</button>
+        	</form>
+        </div>
 	</div>
 	</main>
   </body>

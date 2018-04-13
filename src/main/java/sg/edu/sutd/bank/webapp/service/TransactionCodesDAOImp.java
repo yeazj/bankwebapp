@@ -19,6 +19,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.sql.ResultSet;
+import java.util.ArrayList;
 
 import sg.edu.sutd.bank.webapp.commons.ServiceException;
 
@@ -53,5 +55,48 @@ public class TransactionCodesDAOImp extends AbstractDAOImpl implements Transacti
 			throw ServiceException.wrap(e);
 		}
 	}
-
+	/*
+	@Override
+    public List<String> get(int userId) throws ServiceException{
+		Connection conn = connectDB();
+        PreparedStatement ps;
+        ResultSet rs;
+        try {
+            StringBuilder query = new StringBuilder();
+            query.append("SELECT * FROM transaction_code WHERE user_id = " + userId + " AND used = 0");
+            ps = conn.prepareStatement(query.toString());
+            rs = ps.executeQuery();
+            List<String> codelist = new ArrayList<String>();
+            while(rs.next())
+            {
+                codelist.add(rs.getString("code"));
+            }
+            return codelist;
+        } catch (SQLException e) {
+            throw ServiceException.wrap(e);
+        }
+    }
+    */
+    @Override
+    public boolean check(String trans_code, int userId) throws ServiceException {
+    	Connection conn = connectDB();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = conn.prepareCall("UPDATE transaction_code SET used = TRUE WHERE code = ? AND user_id = ? AND used = FALSE");
+            int idx = 1;
+            ps.setString(idx++, trans_code);
+            ps.setInt(idx++, userId);
+            int rowNum = ps.executeUpdate();
+            if (rowNum == 0) {
+                return false;
+            }
+            return true;
+        } catch (SQLException e) {
+            throw ServiceException.wrap(e);
+        } finally {
+			closeDb(conn, ps, rs);
+		}
+    }
+	
 }
