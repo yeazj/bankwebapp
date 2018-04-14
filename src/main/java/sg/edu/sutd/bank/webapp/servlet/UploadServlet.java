@@ -7,7 +7,7 @@ package sg.edu.sutd.bank.webapp.servlet;
 
 import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.UPLOAD;
 
-import com.opencsv.CSVReader;
+import com.csvreader.CsvReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -54,27 +54,27 @@ public class UploadServlet extends DefaultServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException, FileNotFoundException {
-        File tmpFile = File.createTempFile("test", ".csv");
+        File uploaded = File.createTempFile("test", ".csv");
         Part filepart = req.getPart("uploadFile");
         InputStream fileContent = filepart.getInputStream();
         byte[] buffer = new byte[fileContent.available()];
         fileContent.read(buffer);
 
-        OutputStream out = new FileOutputStream(tmpFile);
+        OutputStream out = new FileOutputStream(uploaded);
         out.write(buffer);
         try{
-            CSVReader csv = new CSVReader(new FileReader(tmpFile));
-            String[] val;
-            while((val = csv.readNext()) != null)
+           CsvReader csv = new CsvReader(new FileReader(uploaded)); //
+           csv.readHeaders();
+            while((csv.readRecord()))
             {
                 try{
                     User user = new User(getUserId(req));
                     ClientAccount account = clientAccountDAO.load(user);
                     ClientTransaction transaction = new ClientTransaction();
                     transaction.setUser(user);
-                    transaction.setTransCode(val[0]);
-                    transaction.setToAccountNum(Integer.parseInt(val[1]));
-                    transaction.setAmount(new BigDecimal(val[2]));
+                    transaction.setTransCode(csv.get("Code"));
+                    transaction.setToAccountNum(Integer.parseInt(csv.get("Account")));
+                    transaction.setAmount(new BigDecimal(csv.get("Amount")));
                     if(account.getAmount().compareTo(transaction.getAmount()) < 0) {
                         throw new SQLException("No enough money");
                     } else if (!transactionCodesDAO.check(transaction.getTransCode(), transaction.getUser().getId())) {
@@ -97,13 +97,13 @@ public class UploadServlet extends DefaultServlet {
                 }
             }
             
-            tmpFile.deleteOnExit();
+            uploaded.deleteOnExit();
             csv.close();
             redirect(resp, ServletPaths.CLIENT_DASHBOARD_PAGE);
         }catch (FileNotFoundException ex){
 
         } finally {
-            tmpFile.delete();
+        	uploaded.delete();
             out.close();
             
         }

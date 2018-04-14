@@ -13,7 +13,9 @@
                     <form id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
                         <div id="input-group-toAccount" class="form-group">
                             <label for="uploadFile" class="control-label">
-                                Upload Transaction File:Format in (Transaction Code, Account Number, Amount)
+                                First Line of file, type : Code,Account,Amount <br/>
+                                Second Line, type data (e.g) : 1111-2222,10,5 <br/>
+                                And so on ...
                             </label>
                             <input type="file" id="uploadfile" name="uploadFile">
                         </div>
