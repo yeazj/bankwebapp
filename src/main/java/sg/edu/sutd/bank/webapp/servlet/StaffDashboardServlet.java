@@ -17,7 +17,6 @@ package sg.edu.sutd.bank.webapp.servlet;
 import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.STAFF_DASHBOARD_PAGE;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,7 +146,6 @@ public class StaffDashboardServlet extends DefaultServlet {
 			throws ServletException, IOException {
 		String[] decisions = req.getParameterValues("decision");
         int[] transIds = toIntegerArray(req.getParameterValues("trans_id"));
-        List<ClientTransaction> transactions = new ArrayList<>();
 
         try {
            

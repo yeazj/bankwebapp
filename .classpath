@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="libs/jstl-1.2.jar"/>
 	<classpathentry kind="lib" path="libs/junit-4.12.jar"/>
 	<classpathentry kind="lib" path="libs/mysql-connector-java-5.1.35.jar"/>
+	<classpathentry kind="lib" path="libs/opencsv-3.8.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

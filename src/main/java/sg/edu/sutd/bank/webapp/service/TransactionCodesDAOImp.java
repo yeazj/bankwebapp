@@ -20,7 +20,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.sql.ResultSet;
-import java.util.ArrayList;
 
 import sg.edu.sutd.bank.webapp.commons.ServiceException;
 
