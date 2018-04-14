@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -55,7 +54,6 @@ public class UploadServlet extends DefaultServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException, FileNotFoundException {
-        Connection conn = null;
         File tmpFile = File.createTempFile("test", ".csv");
         Part filepart = req.getPart("uploadFile");
         InputStream fileContent = filepart.getInputStream();
@@ -94,24 +92,20 @@ public class UploadServlet extends DefaultServlet {
                     clientTransactionDAO.create(transaction);
 
                 }catch (ServiceException | SQLException e) {
-                    try {conn.rollback();} catch(SQLException ex) {}
                     sendError(req, e.getMessage());
                     forward(req, resp);
-                } finally {
-                    try {
-                        if(conn != null && !conn.isClosed()) {
-                            conn.close();
-                        }
-                    } catch (SQLException ex) {}
                 }
             }
             
             tmpFile.deleteOnExit();
+            csv.close();
             redirect(resp, ServletPaths.CLIENT_DASHBOARD_PAGE);
         }catch (FileNotFoundException ex){
 
         } finally {
             tmpFile.delete();
+            out.close();
+            
         }
         
         
