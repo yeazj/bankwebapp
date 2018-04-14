@@ -1,1 +1,19 @@
 language: java
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "DUIC31V1FPI+KUqymr0MLSrW6nsGtGTKTQQ94GbOucsdMH8Jmc4HAHvzuAN3QtxDSWvVgBTilFZ+N1b1q+WPdY/muk7mvCy4FWfG91sbC/Qd3qvmgLYVorhVtzs4gKwPb7FJG5L+YP2PUs6NpXVMFz9+I+CRjlLqkM5L+iQ5Niy9AGdNj8E6KBS2DZFHAa7bM7IrbcgqXTr2UrgNLI+iEqnPow7/8CdVfZ5t2AlMooIat0xDp+Z6Cze9ypIg+SOV0hmyzMBZmLR68efSuzj5WqQfK481uATlDAmUYTrlUvqRmFV38ixS/12RiBoo09SzW4NRX1+gQuzx0YK5ZKgmqlY1NoodI/OIi/WNSMCk+cAORsRy3VHaCKnmzn5R7pnfA4ncNVmdYnQnhUJAJAsWd9b6PzF3m2tb/XYEtHaFdn4m43YWSy8InW5p8yJOoHYAt3wW+pwmRxSbRiAYtyowI77Yoj1RGO7dHkwPrb096n4+66eoiRh22Ovui+puYLb+PFaiYBe0ZyE7EFqR5A5InZfCDYKgbZ8Rzdg3Dl+3VwhcN29x6S40DGb7gLtwwhE3r2hfzZKQTdUOWwN03nCnuItXaNqgNQcKUKdkE16SBBIatsL38RMYpN9nofnS/fYJ4xsGZ5f05l88ZLx2iRCFvRFll9RDKF6af2bAcKcmb1E="
+
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+addons:
+  coverity_scan:
+    project:
+      name: "yeazj/bankwebapp"
+      description: "<Your project description here>"
+    notification_email: yeazjaddoo@hotmail.com
+    build_command_prepend: ""
+    build_command: ""
+    branch_pattern: coverity_scan
