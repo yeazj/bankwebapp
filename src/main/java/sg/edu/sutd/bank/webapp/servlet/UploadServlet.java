@@ -8,6 +8,7 @@ package sg.edu.sutd.bank.webapp.servlet;
 import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.UPLOAD;
 
 import com.csvreader.CsvReader;
+import org.apache.commons.text.StringEscapeUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -62,12 +63,25 @@ public class UploadServlet extends DefaultServlet {
 
         OutputStream out = new FileOutputStream(uploaded);
         out.write(buffer);
+        
+        
+        
+        
+        //Sanitize upload
+        //Files are not kept on disk and are only read and data extracted
+        //Only correct transaction codes are permitted thus anything else in code section will be discarded
+        //Only Integer is accepted for Account, thus all else caught by the NumberFormatException
+        //Only BigDecimal is accepted for Amount, thus all else is caught by the NumberFormatException
+        
         try{
            CsvReader csv = new CsvReader(new FileReader(uploaded)); //
+           System.out.println(csv.getRawRecord());
            csv.readHeaders();
             while((csv.readRecord()))
             {
-                try{
+            	
+                try{               	
+                	
                     User user = new User(getUserId(req));
                     ClientAccount account = clientAccountDAO.load(user);
                     ClientTransaction transaction = new ClientTransaction();
@@ -91,7 +105,7 @@ public class UploadServlet extends DefaultServlet {
                     clientAccountDAO.update(account);
                     clientTransactionDAO.create(transaction);
 
-                }catch (ServiceException | SQLException e) {
+                }catch (ServiceException | SQLException | NumberFormatException e) {
                     sendError(req, e.getMessage());
                     forward(req, resp);
                 }

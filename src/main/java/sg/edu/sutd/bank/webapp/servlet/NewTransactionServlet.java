@@ -20,6 +20,8 @@ import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.NEW_TRANSACTION;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -48,6 +50,16 @@ public class NewTransactionServlet extends DefaultServlet {
     
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
+		
+		//Sanitize transaction input
+		//Not needed for code as it's verified by comparing from list of codes
+		//NumberFormatException is now caught so that illegal characters are not enterred as Account or Amount
+		
+		String amount = req.getParameter("amount");
+		
+		amount = Normalizer.normalize(amount, Form.NFKC);
+		
 		try {
 			ClientTransaction clientTransaction = new ClientTransaction();
 			User user = new User(getUserId(req));
@@ -75,7 +87,7 @@ public class NewTransactionServlet extends DefaultServlet {
 			clientAccountDAO.update(clientAccount);
 			clientTransactionDAO.create(clientTransaction);
 			redirect(resp, ServletPaths.CLIENT_DASHBOARD_PAGE);
-		} catch (ServiceException | SQLException e) {
+		} catch (ServiceException | SQLException | NumberFormatException e) {
             sendError(req, e.getMessage());
             forward(req, resp);
         }

@@ -39,7 +39,16 @@ public class LoginServlet extends DefaultServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			String userName = req.getParameter("username");
+			String password = req.getParameter("password");
 			User user = userDAO.loadUser(userName);
+			
+			//Sanitize login
+			//Password : Minimum 6 characters, at least one letter, one number and one special character
+			if (!userName.matches("[\\w*]*") || !password.matches("[\\w+@$!%*#?&]*")) {
+				sendError(req, "Invalid characters are not allowed in form");
+				forward(req, resp);
+			}
+			
 			if (user != null && (user.getStatus() == UserStatus.APPROVED)) {
 				req.login(userName, req.getParameter("password"));
 				HttpSession session = req.getSession(true);

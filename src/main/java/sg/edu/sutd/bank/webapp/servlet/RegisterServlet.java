@@ -51,6 +51,35 @@ public class RegisterServlet extends DefaultServlet {
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
 		User user = new User();
+		
+		//Sanitize registration
+		//Email and DOB are checked via javascript
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+		String fullname = request.getParameter("fullName");
+		String fin = request.getParameter("fin");
+		String occupation = request.getParameter("occupation");
+		String mobile = request.getParameter("mobileNumber");
+		String address = request.getParameter("address");
+		
+		if (!password.matches("[\\w+@$!%*#?&]{6,}")) {
+			sendError(request, "Password must have min 6 chars, at least a letter, a number and a special character");
+			forward(request, response);
+		}
+		
+		else if (!username.matches("[\\w*]*")
+				|| !fullname.matches("[\\w*]*")
+				|| !fin.matches("[\\w*]*")
+				|| !occupation.matches("[\\w*]*")
+				|| !mobile.matches("[\\w*]*")
+				|| !address.matches("[\\w*]*")
+				) {
+
+			sendError(request, "Invalid characters are not allowed in the form!");
+			forward(request, response);
+		}
+		
+		
 		user.setUserName(request.getParameter("username"));
 		user.setPassword(request.getParameter("password"));
 

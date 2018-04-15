@@ -29,7 +29,7 @@ public class ClientAccount extends AbstractIdEntity {
 		this.user = user;
 	}
 
-	public BigDecimal getAmount() {
+	public synchronized BigDecimal getAmount() {
 		return amount;
 	}
 
