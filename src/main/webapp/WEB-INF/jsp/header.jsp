@@ -14,7 +14,7 @@
 	          <a class="navbar-brand" href="#"><img alt="SUTD Logo" src="<c:url value="/resources/img/sutd-logo.png" />"></a>
 	        </div>
 	        <div id="navbar" class="collapse navbar-collapse">
-	          <ul class="nav navbar-nav">
+	          <ul class="nav navbar-nav" >
 	            <c:if test="${empty sessionScope.authenticatedUser}">
 	            	<li><a href="login">Login</a></li>
 	            	<li class="header-text">or</li>

@@ -39,6 +39,7 @@ public class ClientDashboardServlet extends DefaultServlet {
 		try {
 			ClientInfo clientInfo = clientInfoDao.loadAccountInfo(req.getRemoteUser());
 			req.getSession().setAttribute("clientInfo", clientInfo);
+			req.getSession().setAttribute("Username", clientInfo.getUser().getUserName());
 		} catch (ServiceException e) {
 			sendError(req, e.getMessage());
 		}

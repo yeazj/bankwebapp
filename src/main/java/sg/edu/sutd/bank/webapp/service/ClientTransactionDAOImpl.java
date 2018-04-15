@@ -79,15 +79,15 @@ public class ClientTransactionDAOImpl extends AbstractDAOImpl implements ClientT
 			rs = ps.executeQuery();
 			List<ClientTransaction> transactions = new ArrayList<ClientTransaction>();
 			while (rs.next()) {
-				ClientTransaction trans = new ClientTransaction();
-				trans.setId(rs.getInt("id"));
-				trans.setUser(user);
-				trans.setAmount(rs.getBigDecimal("amount"));
-				trans.setDateTime(rs.getDate("datetime"));
-				trans.setStatus(TransactionStatus.of(rs.getString("status")));
-				trans.setTransCode(rs.getString("trans_code"));
-				trans.setToAccountNum(rs.getInt("to_account_num"));
-				transactions.add(trans);
+				ClientTransaction clientTransaction = new ClientTransaction();
+				clientTransaction.setId(rs.getInt("id"));
+				clientTransaction.setUser(user);
+				clientTransaction.setAmount(rs.getBigDecimal("amount"));
+				clientTransaction.setDateTime(rs.getDate("datetime"));
+				clientTransaction.setStatus(TransactionStatus.of(rs.getString("status")));
+				clientTransaction.setTransCode(rs.getString("trans_code"));
+				clientTransaction.setToAccountNum(rs.getInt("to_account_num"));
+				transactions.add(clientTransaction);
 			}
 			return transactions;
 		} catch (SQLException e) {

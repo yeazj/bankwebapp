@@ -11,6 +11,8 @@
 	<div class="container">
 		<%@include file="errorMessage.jsp"%>
 		<div id="accountBalance">
+			<h3>User: </h3>
+			<div>${Username}</div>
 			<h3>Account Balance:  </h3>
 			<div>${clientInfo.account.amount}</div>
 		</div>
