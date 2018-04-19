@@ -17,6 +17,8 @@ package sg.edu.sutd.bank.webapp.servlet;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -47,6 +49,8 @@ public class RegisterServlet extends DefaultServlet {
 	private UserDAO userDAO = new UserDAOImpl();
 	private UserRoleDAO userRoleDAO = new UserRoleDAOImpl();
 	private EmailService emailService = new EmailServiceImp();
+	private MessageDigest messageDigest;
+	private String passwordhash;
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
@@ -78,10 +82,32 @@ public class RegisterServlet extends DefaultServlet {
 			sendError(request, "Invalid characters are not allowed in the form!");
 			forward(request, response);
 		}
-		
+				
+	
+		try {
+			messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest.update(password.getBytes());
+			byte byteData[] = messageDigest.digest();
+			StringBuffer hexString = new StringBuffer();
+			for (int i=0;i<byteData.length;i++) 
+			{
+				String hex=Integer.toHexString(0xff & byteData[i]);
+				if(hex.length()==1) 
+				{
+					hexString.append('0');
+				}
+				hexString.append(hex);
+			}
+			passwordhash = hexString.toString();
+			
+		} catch (NoSuchAlgorithmException e) {
+			sendError(request, e.getMessage());
+			forward(request, response);
+		}
+
 		
 		user.setUserName(request.getParameter("username"));
-		user.setPassword(request.getParameter("password"));
+		user.setPassword(passwordhash); //request.getParameter("password")
 
 		ClientInfo clientAccount = new ClientInfo();
 		clientAccount.setFullName(request.getParameter("fullName"));

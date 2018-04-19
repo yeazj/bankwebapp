@@ -16,6 +16,9 @@ https://opensource.org/licenses/ECL-2.0
 package sg.edu.sutd.bank.webapp.servlet;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.*;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -34,6 +37,8 @@ import sg.edu.sutd.bank.webapp.service.UserDAOImpl;
 public class LoginServlet extends DefaultServlet {
 	private static final long serialVersionUID = 1L;
 	private UserDAO userDAO = new UserDAOImpl();
+	private MessageDigest messageDigest;
+	private String passwordhash;
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -49,8 +54,23 @@ public class LoginServlet extends DefaultServlet {
 				forward(req, resp);
 			}
 			
+			messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest.update(password.getBytes());
+			byte byteData[] = messageDigest.digest();
+			StringBuffer hexString = new StringBuffer();
+			for (int i=0;i<byteData.length;i++) 
+			{
+				String hex=Integer.toHexString(0xff & byteData[i]);
+				if(hex.length()==1) 
+				{
+					hexString.append('0');
+				}
+				hexString.append(hex);
+			}
+			passwordhash = hexString.toString();
+			
 			if (user != null && (user.getStatus() == UserStatus.APPROVED)) {
-				req.login(userName, req.getParameter("password"));
+				req.login(userName, passwordhash);
 				HttpSession session = req.getSession(true);
 				session.setAttribute("authenticatedUser", req.getRemoteUser());
 				setUserId(req, user.getId());
@@ -62,7 +82,7 @@ public class LoginServlet extends DefaultServlet {
 				return;
 			}
 			sendError(req, "Invalid username/password!");
-		} catch(ServletException | ServiceException ex) {
+		} catch(ServletException | ServiceException | NoSuchAlgorithmException ex) {
 			sendError(req, ex.getMessage());
 		}
 		forward(req, resp);

@@ -28,7 +28,8 @@ public class TransactionCodesDAOImp extends AbstractDAOImpl implements Transacti
 	@Override
 	public void create(List<String> codes, int userId) throws ServiceException {
 		Connection conn = connectDB();
-		PreparedStatement ps;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			StringBuilder query = new StringBuilder();
 			query.append("INSERT INTO transaction_code(code, user_id, used)"
@@ -52,6 +53,9 @@ public class TransactionCodesDAOImp extends AbstractDAOImpl implements Transacti
 			}
 		} catch (SQLException e) {
 			throw ServiceException.wrap(e);
+			//Added closeDB COVERITY_SCAN
+		} finally {
+			closeDb(conn, ps, rs);
 		}
 	}
 	/*

@@ -8,7 +8,6 @@ package sg.edu.sutd.bank.webapp.servlet;
 import static sg.edu.sutd.bank.webapp.servlet.ServletPaths.UPLOAD;
 
 import com.csvreader.CsvReader;
-import org.apache.commons.text.StringEscapeUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -18,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.lang.IllegalStateException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -72,6 +72,7 @@ public class UploadServlet extends DefaultServlet {
         //Only correct transaction codes are permitted thus anything else in code section will be discarded
         //Only Integer is accepted for Account, thus all else caught by the NumberFormatException
         //Only BigDecimal is accepted for Amount, thus all else is caught by the NumberFormatException
+        //Any other file type, size or malicious file uploaded is caught by IllegalStateException
         
         try{
            CsvReader csv = new CsvReader(new FileReader(uploaded)); //
@@ -105,10 +106,14 @@ public class UploadServlet extends DefaultServlet {
                     clientAccountDAO.update(account);
                     clientTransactionDAO.create(transaction);
 
-                }catch (ServiceException | SQLException | NumberFormatException e) {
-                    sendError(req, e.getMessage());
+                }catch (ServiceException | SQLException e) {
+                    sendError(req, e.getMessage()); //
+                    forward(req, resp);
+                }catch (IllegalStateException | NumberFormatException e) {
+                    sendError(req, "There's an issue with your file!");
                     forward(req, resp);
                 }
+                
             }
             
             uploaded.deleteOnExit();
