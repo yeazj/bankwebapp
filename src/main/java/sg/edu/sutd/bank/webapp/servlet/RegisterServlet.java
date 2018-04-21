@@ -68,7 +68,7 @@ public class RegisterServlet extends DefaultServlet {
 		
 		if (!password.matches("[\\w+@$!%*#?&]{6,}")) {
 			sendError(request, "Password must have min 6 chars, at least a letter, a number and a special character");
-			forward(request, response);
+			//forward(request, response);
 		}
 		
 		else if (!username.matches("[\\w*]*")
@@ -80,7 +80,7 @@ public class RegisterServlet extends DefaultServlet {
 				) {
 
 			sendError(request, "Invalid characters are not allowed in the form!");
-			forward(request, response);
+			//forward(request, response);
 		}
 				
 	
@@ -102,7 +102,6 @@ public class RegisterServlet extends DefaultServlet {
 			
 		} catch (NoSuchAlgorithmException e) {
 			sendError(request, e.getMessage());
-			forward(request, response);
 		}
 
 		
